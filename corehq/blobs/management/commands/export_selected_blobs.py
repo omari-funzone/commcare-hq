@@ -4,15 +4,12 @@ import inspect
 import json
 import logging
 import os
-import pathlib
 import re
-import shutil
 import zipfile
 from collections import namedtuple
 from concurrent import futures
 from pathlib import Path
 
-import atexit
 from django.core.management import BaseCommand, CommandError
 
 from corehq.apps.dump_reload.management.commands.load_domain_data import get_tmp_extract_dir
@@ -111,10 +108,7 @@ def _export_blobs(output_path, path, meta):
         for obj in with_progress_bar(_key_iterator(path), length=expected_count, prefix=prefix, oneline=False):
             migrator.process_object(obj)
 
-    print("Exported {} objects to {}".format(migrator.total_blobs, export_filename))
-
     return export_filename
-
 
 def _key_iterator(path):
     def _get_keys(iterator):
