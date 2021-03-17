@@ -14,7 +14,7 @@ from corehq.apps.accounting.decorators import requires_privilege_with_fallback
 from corehq.apps.domain.decorators import (
     api_auth,
     require_superuser_or_contractor,
-)
+    allow_cors)
 from corehq.apps.domain.views.settings import BaseProjectSettingsView
 from corehq.apps.hqwebapp.decorators import waf_allow
 from corehq.form_processor.exceptions import CaseNotFound
@@ -80,6 +80,7 @@ class ExplodeCasesView(BaseProjectSettingsView, TemplateView):
 # TODO switch to @require_can_edit_data
 @waf_allow('XSS_BODY')
 @csrf_exempt
+@allow_cors(['OPTIONS', 'GET', 'POST', 'PUT'])
 @api_auth
 @require_superuser_or_contractor
 @requires_privilege_with_fallback(privileges.API_ACCESS)
