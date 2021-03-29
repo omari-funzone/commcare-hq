@@ -11,6 +11,7 @@ from corehq import privileges, toggles
 from corehq.apps.accounting.utils import domain_has_privilege
 from corehq.apps.analytics.tasks import track_workflow
 from corehq.apps.api.util import get_obj
+from dimagi.utils.decorators.profile import profile_dump
 
 
 class DictObject(object):
@@ -96,6 +97,7 @@ class HqBaseResource(CorsResourceMixin, JsonResourceMixin, Resource):
     Convenience class to allow easy adjustment of API resource base classes.
     """
 
+    @profile_dump('commcare_api.prof')
     def dispatch(self, request_type, request, **kwargs):
         if toggles.API_BLACKLIST.enabled_for_request(request):
             msg = ("API access has been temporarily cut off due to too many "
