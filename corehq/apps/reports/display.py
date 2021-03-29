@@ -115,3 +115,35 @@ class _FormType(object):
 
 def xmlns_to_name(domain, xmlns, app_id, lang=None, separator=None):
     return _FormType(domain, xmlns, app_id).get_label(lang, separator)
+
+
+class DisplayWrapper:
+    def __init__(self, wrapped, timezone, date_format=USER_DATETIME_FORMAT_WITH_SEC):
+        self.wrapped = wrapped
+        self.timezone = timezone
+        self.date_format = date_format
+
+    def __getattr__(self, item):
+        return getattr(self.wrapped, item)
+
+    def server_date_display(self, date):
+        return ServerTime(date).user_time(self.timezone).ui_string(self.date_format)
+
+
+class RepeatRecordDisplay(DisplayWrapper):
+    @property
+    def last_checked(self):
+        return self.server_date_display(self.wrapped.last_checked)
+
+    @property
+    def attempts(self):
+        return [
+            RepeatRecordAttemptDisplay(attempt, self.timezone, self.date_format)
+            for attempt in self.wrapped.attempts
+        ]
+
+
+class RepeatRecordAttemptDisplay(DisplayWrapper):
+    @property
+    def datetime(self):
+        return self.server_date_display(self.wrapped.datetime)

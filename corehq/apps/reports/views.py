@@ -105,7 +105,7 @@ from corehq.apps.locations.permissions import (
 from corehq.apps.products.models import SQLProduct
 from corehq.apps.receiverwrapper.auth import AuthContext
 from corehq.apps.receiverwrapper.util import submit_form_locally
-from corehq.apps.reports.display import xmlns_to_name
+from corehq.apps.reports.display import xmlns_to_name, RepeatRecordDisplay
 from corehq.apps.reports.exceptions import EditFormValidationError
 from corehq.apps.reports.formdetails.readable import (
     get_data_cleaning_data,
@@ -133,6 +133,7 @@ from corehq.apps.users.permissions import (
     FORM_EXPORT_PERMISSION,
 )
 from corehq.blobs import CODES, NotFound, get_blob_db, models
+from corehq.const import USER_DATETIME_FORMAT
 from corehq.form_processor.exceptions import CaseNotFound
 from corehq.form_processor.interfaces.dbaccessors import (
     CaseAccessors,
@@ -169,6 +170,7 @@ from .dispatcher import ProjectReportDispatcher
 from .forms import SavedReportConfigForm
 from .standard import ProjectReport, inspect
 from .standard.cases.basic import CaseListReport
+
 
 # Number of columns in case property history popup
 DYNAMIC_CASE_PROPERTIES_COLUMNS = 4
@@ -1070,7 +1072,10 @@ class CaseDataView(BaseProjectReportSectionView):
             product_tuples.sort(key=lambda x: x[0])
             ledger_map[section] = product_tuples
 
-        repeat_records = get_repeat_records_by_payload_id(self.domain, self.case_id)
+        repeat_records = [
+            RepeatRecordDisplay(record, timezone) for record in
+            get_repeat_records_by_payload_id(self.domain, self.case_id)
+        ]
 
         can_edit_data = self.request.couch_user.can_edit_data
         show_properties_edit = (
@@ -1110,7 +1115,7 @@ def form_to_json(domain, form, timezone):
         app_id=form.app_id,
         lang=get_language(),
     )
-    received_on = ServerTime(form.received_on).user_time(timezone).done().strftime("%Y-%m-%d %H:%M")
+    received_on = ServerTime(form.received_on).user_time(timezone).done().strftime(USER_DATETIME_FORMAT)
 
     return {
         'id': form.form_id,
